@@ -63,6 +63,7 @@ def mime_type(resource)
 end
 
 def send_page(cli, page, page_length)
+  #TODO Modify for Jumbo Frames(4096][page size]-8192) and test
   if page_length <= 1400 #Ethernet MTU
     cli.print page.read
   else
