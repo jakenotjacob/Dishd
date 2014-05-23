@@ -8,11 +8,14 @@ def route(client, request, resource, params)
   case request
   when "GET"
     if File.exists? (Dir.pwd+resource)
-      client.print "HTTP/1.1 200 OK"
+      page = File.read(Dir.pwd+resource)
+      content_length = page.size
+      client.print "HTTP/1.1 200 OK\r\n"
+      client.print "Content-Length: #{content_length}\r\n"
       client.print "\r\n"
-      client.puts File.read("#{Dir.pwd}#{resource}")
+      client.print page
     else
-      client.puts"HTTP/1.1 404 NOT FOUND\r\n"
+      client.print"HTTP/1.1 404 NOT FOUND\r\n"
       client.print "\r\n"
     end
     client.close
