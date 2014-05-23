@@ -40,21 +40,25 @@ def listen(serv)
   end
 end
 
-def mime_type(resource)
-  extension = resource.split(".").last
-  mimes = {
-    "image" => %w[jpg jpeg jpe pjpeg gif png bmp svg raw tga tif tiff],
-    "application" => %w[json pdf xml zip gzip js],
-    "text" => %w[html css csv rtf txt],
-    "audio" => %w[mp3 mp4 mpeg wav m4a aac ogg wma flac],
-    "video" => %w[mpeg mp4 avi ogg]
-  }
-
-  mimes.keys.each { |key|
-    if mimes[key].include? extension
-      return "#{key}/#{extension}"
-    end
+@mimes = {}
+def load_mimes
+  f = File.open("/etc/mime.types", "r").readlines
+  f.each {|mime|
+    mime_type, *extensions = mime.split
+    extensions.each { |ext|
+      @mimes[ext] = mime_type
+    }
   }
 end
-    
+
+def mime_type(resource)
+  extension = resource.split(".").last
+  if @mimes[extension] != nil
+    return @mimes[extension]
+  else
+    return "Unable to detect MIME type."
+  end
+end
+
+load_mimes    
 listen(@serv)
