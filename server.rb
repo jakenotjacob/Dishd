@@ -49,6 +49,7 @@ def load_mimes
       @mimes[ext] = mime_type
     }
   }
+  f.close
 end
 
 def mime_type(resource)
