@@ -8,14 +8,14 @@ def route(client, request, resource, params)
   case request
   when "GET"
     if File.exists? (Dir.pwd+resource)
-      page = File.read(Dir.pwd+resource)
+      page = File.open(Dir.pwd+resource)
       content_type = mime_type(resource)
       content_length = page.size
       client.print "HTTP/1.1 200 OK\r\n"
       client.print "Content-Length: #{content_length}\r\n"
       client.print "Content-Type: #{content_type}\r\n" if content_type != nil
       client.print "\r\n"
-      client.print page
+      send_page(client, page, content_length)
     else
       client.print"HTTP/1.1 404 NOT FOUND\r\n"
       client.print "\r\n"
@@ -59,6 +59,16 @@ def mime_type(resource)
     return @mimes[extension]
   else
     return nil
+  end
+end
+
+def send_page(cli, page, page_length)
+  if page_length <= 1400 #Ethernet MTU
+    cli.print page.read
+  else
+    until page.eof?
+      cli.print page.readpartial(1400)
+    end
   end
 end
 
