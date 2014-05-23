@@ -13,7 +13,7 @@ def route(client, request, resource, params)
       content_length = page.size
       client.print "HTTP/1.1 200 OK\r\n"
       client.print "Content-Length: #{content_length}\r\n"
-      client.print "Content-Type: #{content_type}\r\n"
+      client.print "Content-Type: #{content_type}\r\n" if content_type != nil
       client.print "\r\n"
       client.print page
     else
@@ -42,8 +42,9 @@ end
 
 @mimes = {}
 def load_mimes
-  f = File.open("/etc/mime.types", "r").readlines
-  f.each {|mime|
+  f = File.open("/etc/mime.types", "r")
+  mimes = f.readlines
+  mimes.each {|mime|
     mime_type, *extensions = mime.split
     extensions.each { |ext|
       @mimes[ext] = mime_type
@@ -57,7 +58,7 @@ def mime_type(resource)
   if @mimes[extension] != nil
     return @mimes[extension]
   else
-    return "Unable to detect MIME type."
+    return nil
   end
 end
 
