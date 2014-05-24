@@ -29,14 +29,17 @@ end
 
 def listen(serv)
   loop do
-    client = serv.accept
-    request, resource, version = client.readline.split(" ")
-    params = []
-    until params.last == "\r\n"
-      line = client.gets
-      params << line
-    end
-    route(client, request, resource, params)
+    Thread.fork(serv.accept) { |client|
+      request, resource, version = client.readline.split(" ")
+      params = []
+      until params.last == "\r\n"
+        line = client.gets
+        params << line
+      end
+      route(client, request, resource, params)
+      client.close
+      Thread.exit
+    }
   end
 end
 
