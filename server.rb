@@ -14,10 +14,12 @@ def route(client, request, resource, params)
       client.print "HTTP/1.1 200 OK\r\n"
       client.print "Content-Length: #{content_length}\r\n"
       client.print "Content-Type: #{content_type}\r\n" if content_type != nil
+      client.print current_time
       client.print "\r\n"
       send_page(client, page, content_length)
     else
       client.print"HTTP/1.1 404 NOT FOUND\r\n"
+      client.print current_time
       client.print "\r\n"
     end
     client.close
@@ -38,9 +40,13 @@ def listen(serv)
       end
       route(client, request, resource, params)
       client.close
-      Thread.exit
     }
   end
+end
+
+def current_time
+  d = Time.new.strftime("%a,%e %b %Y %H:%M:%S %Z")
+  return "Date: #{d}"
 end
 
 @mimes = {}
