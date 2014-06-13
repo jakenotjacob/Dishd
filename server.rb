@@ -11,7 +11,7 @@ def route(client, request, resource, params)
     if File.exists? page_path
       page = File.open(page_path)
       client.print "HTTP/1.1 200 OK\r\n"
-      send_content_info(client, page)
+      send_content_header(client, page)
       client.print current_time()
       client.print "\r\n"
       send_page(client, page, page.size)
