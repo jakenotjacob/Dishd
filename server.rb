@@ -7,16 +7,14 @@ require 'socket'
 def route(client, request, resource, params)
   case request
   when "GET"
-    if File.exists? (Dir.pwd+resource)
-      page = File.open(Dir.pwd+resource)
-      content_type = mime_type(resource)
-      content_length = page.size
+    page_path = (Dir.pwd+resource)
+    if File.exists? page_path
+      page = File.open(page_path)
       client.print "HTTP/1.1 200 OK\r\n"
-      client.print "Content-Length: #{content_length}\r\n"
-      client.print "Content-Type: #{content_type}\r\n" if content_type != nil
-      client.print current_time
+      send_content_info(client, page)
+      client.print current_time()
       client.print "\r\n"
-      send_page(client, page, content_length)
+      send_page(client, page, page.size)
     else
       client.print"HTTP/1.1 404 NOT FOUND\r\n"
       client.print current_time
@@ -44,9 +42,16 @@ def listen(serv)
   end
 end
 
+def send_content_header(client, page)
+  content_type = mime_type(page.path)
+  content_length = page.size
+  client.print "Content-Length: #{content_length}\r\n"
+  client.print "Content-Type: #{content_type}\r\n" if content_type != nil
+end
+
 def current_time
   d = Time.new.strftime("%a,%e %b %Y %H:%M:%S %Z")
-  return "Date: #{d}"
+  return "Date: #{d}\r\n"
 end
 
 @mimes = {}
