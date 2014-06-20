@@ -7,18 +7,20 @@ require 'socket'
 def route(client, request, resource, params)
   case request
   when "GET"
-    page_path = (Dir.pwd+resource)
-    if File.exists? page_path
-      page = File.open(page_path)
-      print_header(client,"HTTP/1.1 200 OK")
-      send_content_header(client, page)
-      print_header(client, current_time)
-      add_separator(client)
-      send_page(client, page, page.size)
+    if File.exists? (Dir.pwd+resource)
+      page = File.open(Dir.pwd+resource)
+      content_type = mime_type(resource)
+      content_length = page.size
+      client.print "HTTP/1.1 200 OK\r\n"
+      client.print "Content-Length: #{content_length}\r\n"
+      client.print "Content-Type: #{content_type}\r\n" if content_type != nil
+      client.print current_time
+      client.print "\r\n"
+      send_page(client, page, content_length)
     else
-      print_header(client, "HTTP/1.1 404 NOT FOUND")
-      print_header(client, current_time)
-      add_separator(client)
+      client.print"HTTP/1.1 404 NOT FOUND\r\n"
+      client.print current_time
+      client.print "\r\n"
     end
     client.close
   #when "POST"
@@ -40,21 +42,6 @@ def listen(serv)
       client.close
     }
   end
-end
-
-def print_header(client, str)
-  client.print (str + "\r\n")
-end
-
-def add_separator(client)
-  client.print "\r\n"
-end
-
-def send_content_header(client, page)
-  content_type = mime_type(page.path)
-  content_length = page.size
-  print_header(client, "Content-Length: #{content_length}")
-  print_header(client,"Content-Type: #{content_type}") if content_type != nil
 end
 
 def current_time
