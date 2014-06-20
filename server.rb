@@ -9,24 +9,45 @@ def route(client, request, resource, params)
   when "GET"
     if File.exists? (Dir.pwd+resource)
       page = File.open(Dir.pwd+resource)
-      content_type = mime_type(resource)
-      content_length = page.size
-      client.print "HTTP/1.1 200 OK\r\n"
-      client.print "Content-Length: #{content_length}\r\n"
-      client.print "Content-Type: #{content_type}\r\n" if content_type != nil
-      client.print current_time
-      client.print "\r\n"
-      send_page(client, page, content_length)
+      headers = get_headers(page)
+      send_headers(client, headers)
+      send_page(client, page, page.size)
     else
-      client.print"HTTP/1.1 404 NOT FOUND\r\n"
-      client.print current_time
-      client.print "\r\n"
+      send_status(404, client)
     end
     client.close
   #when "POST"
   #when "PUT"
   #when "DELETE"
   end
+end
+
+def send_status(code, client)
+  case code
+  when 200
+    client.print "HTTP/1.1 200 OK\r\n"
+  when 404
+    client.print "HTTP/1.1 404 NOT FOUND\r\n"
+    client.print "Date: #{current_time}\r\n"
+    client.print "\r\n"
+  end
+end
+
+def get_headers(page)
+  headers = {
+    "Date" => current_time,
+    "Content Type" => mime_type(page.path),
+    "Content Length" => page.size
+  }
+  return headers
+end
+
+def send_headers(client, headers)
+  send_status(200, client)
+  headers.each { |type, value|
+    client.print "#{type}: #{value}\r\n"
+  }
+  client.print "\r\n"
 end
 
 def listen(serv)
@@ -45,8 +66,7 @@ def listen(serv)
 end
 
 def current_time
-  d = Time.new.strftime("%a,%e %b %Y %H:%M:%S %Z")
-  return "Date: #{d}\r\n"
+  Time.new.strftime("%a, %e %b %Y %H:%M:%S %Z")
 end
 
 @mimes = {}
