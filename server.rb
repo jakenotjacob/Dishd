@@ -46,7 +46,7 @@ end
 
 def current_time
   d = Time.new.strftime("%a,%e %b %Y %H:%M:%S %Z")
-  return "Date: #{d}"
+  return "Date: #{d}\r\n"
 end
 
 @mimes = {}
